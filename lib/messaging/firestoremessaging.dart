@@ -155,7 +155,7 @@ class FirestoreMessaging extends TaskDocument<DataField>
       if (isEmpty(key) || value == null) return;
       for (MapEntry<String, FirestoreMetaFilter> tmp
           in FirestoreMeta.filter.entries) {
-        value = tmp.value(key + tmp.key, value, data);
+        value = tmp.value(key + tmp.key, value, data, this);
       }
       this[key] = value;
     });

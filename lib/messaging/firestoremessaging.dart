@@ -8,6 +8,8 @@ part of masamune.firebase.messaging;
 /// The callback will be executed when the message is received.
 class FirestoreMessaging extends TaskDocument<DataField>
     implements ITask, IDataDocument<DataField> {
+  String _serverKey;
+
   /// Create a Completer that matches the class.
   ///
   /// Do not use from external class
@@ -68,29 +70,139 @@ class FirestoreMessaging extends TaskDocument<DataField>
   /// The callback will be executed when the message is received.
   ///
   /// [subscribe]: Timeout time.
+  /// [serverKey]: Cloud messaging server key. You need to set this to send.
   static Future<FirestoreMessaging> listen(
-      {List<String> subscribe = const []}) {
+      {List<String> subscribe = const [], String serverKey}) {
     if (Config.isWeb) {
       Log.error("This platform is not supported.");
       return Future.delayed(Duration.zero);
     }
     FirestoreMessaging document = PathMap.get<FirestoreMessaging>(_systemPath);
-    if (document != null) return document.future;
-    document = FirestoreMessaging._(path: _systemPath);
+    if (document != null) {
+      if (document._serverKey != serverKey) document._serverKey = serverKey;
+      return document.future;
+    }
+    document = FirestoreMessaging._(path: _systemPath, serverKey: serverKey);
     document._initialize();
     subscribe?.forEach((topic) {
-      document.subscribe(topic);
+      document._subscribe(topic);
     });
     return document.future;
+  }
+
+  /// Send a message to a specific topic.
+  ///
+  /// [title]: Notification Title.
+  /// [text]: Notification Text.
+  /// [topic]: Destination topic.
+  /// [data]: Data to be included in the notification.
+  static Future<FirestoreMessaging> send(
+      {@required String title,
+      @required String text,
+      @required String topic,
+      Map<String, dynamic> data}) async {
+    if (Config.isWeb) {
+      Log.error("This platform is not supported.");
+      return null;
+    }
+    assert(isNotEmpty(title));
+    assert(isNotEmpty(text));
+    if (isEmpty(title) || isEmpty(text)) {
+      Log.error("There is no information in the message.");
+      return null;
+    }
+    assert(isNotEmpty(topic));
+    if (isEmpty(topic)) {
+      Log.error("You have not specified a topic.");
+      return null;
+    }
+    FirestoreMessaging document = PathMap.get<FirestoreMessaging>(_systemPath);
+    assert(document != null);
+    if (document == null) {
+      Log.error(
+          "Firestore Messaging has not been initialized. Please run [FirestoreMessaging.listen] to initialize it.");
+      return null;
+    }
+    assert(isNotEmpty(document._serverKey));
+    if (isEmpty(document._serverKey)) {
+      Log.msg("The server key is not set.");
+      return null;
+    }
+    document.init();
+    try {
+      if (data == null) data = {};
+      data["click_action"] = "FLUTTER_NOTIFICATION_CLICK";
+      final aa = await post(
+        "https://fcm.googleapis.com/fcm/send",
+        headers: <String, String>{
+          "Content-Type": "application/json",
+          "Authorization": "key=${document._serverKey}",
+        },
+        body: Json.encode(
+          <String, dynamic>{
+            "notification": <String, dynamic>{"title": title, "body": text},
+            "priority": "high",
+            "data": data,
+            "to": "/topics/$topic"
+          },
+        ),
+      );
+      document.done();
+    } catch (e) {
+      document.error(e.toString());
+    }
+    return document;
+  }
+
+  /// Subscribe to a new topic.
+  ///
+  /// [topic]: The topic you want to subscribe to.
+  static FirestoreMessaging subscribe(String topic) {
+    assert(isNotEmpty(topic));
+    if (isEmpty(topic)) {
+      Log.error("The topic name is invalid.");
+      return null;
+    }
+    FirestoreMessaging document = PathMap.get<FirestoreMessaging>(_systemPath);
+    assert(document != null);
+    if (document == null) {
+      Log.error(
+          "Firestore Messaging has not been initialized. Please run [FirestoreMessaging.listen] to initialize it.");
+      return null;
+    }
+    document._subscribe(topic);
+    return document;
+  }
+
+  /// The topic you want to unsubscribe.
+  ///
+  /// [topic]: The topic you want to unsubscribe to.
+  static FirestoreMessaging unsubscribe(String topic) {
+    assert(isNotEmpty(topic));
+    if (isEmpty(topic)) {
+      Log.error("The topic name is invalid.");
+      return null;
+    }
+    FirestoreMessaging document = PathMap.get<FirestoreMessaging>(_systemPath);
+    assert(document != null);
+    if (document == null) {
+      Log.error(
+          "Firestore Messaging has not been initialized. Please run [FirestoreMessaging.listen] to initialize it.");
+      return null;
+    }
+    document._unsubscribe(topic);
+    return document;
   }
 
   FirestoreMessaging._(
       {String path,
       Iterable<DataField> children,
+      String serverKey,
       bool isTemporary = false,
       int group = 0,
       int order = 10})
-      : super(
+      : this._serverKey = serverKey,
+        super(
             path: path,
             children: children,
             isTemporary: isTemporary,
@@ -167,20 +279,14 @@ class FirestoreMessaging extends TaskDocument<DataField>
     Log.ast("Updated data: %s (%s)", [this.path, this.runtimeType]);
   }
 
-  /// Subscribe to a new topic.
-  ///
-  /// [topic]: The topic you want to subscribe to.
-  FirestoreMessaging subscribe(String topic) {
+  FirestoreMessaging _subscribe(String topic) {
     if (isEmpty(topic)) return this;
     if (Config.isIOS) topic = "/topics/" + topic;
     this._messaging.subscribeToTopic(topic);
     return this;
   }
 
-  /// The topic you want to unsubscribe.
-  ///
-  /// [topic]: The topic you want to unsubscribe to.
-  FirestoreMessaging unsubscribe(String topic) {
+  FirestoreMessaging _unsubscribe(String topic) {
     if (isEmpty(topic)) return this;
     if (Config.isIOS) topic = "/topics/" + topic;
     this._messaging.unsubscribeFromTopic(topic);

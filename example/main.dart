@@ -1,3 +1,3 @@
-import 'package:masamune_firebase_mobile/masamune_firebase_mobile.dart';
+import 'package:masamune_firebase_messaging/masamune_firebase_messaging.dart';
 
 void main() async {}

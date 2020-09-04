@@ -219,14 +219,14 @@ class FirestoreMessaging extends TaskDocument<DataField>
           onResume: this._done,
           onBackgroundMessage:
               Config.isIOS ? null : _onBackgroundMessageHandler);
-      this._messaging.requestNotificationPermissions(
-          const IosNotificationSettings(sound: true, badge: true, alert: true));
       this
           ._messaging
           .onIosSettingsRegistered
           .listen((IosNotificationSettings settings) {
         Log.msg("Settings registered: $settings");
       });
+      await this._messaging.requestNotificationPermissions(
+          const IosNotificationSettings(sound: true, badge: true, alert: true));
       if (_dataCache != null)
         this._done(_dataCache);
       else

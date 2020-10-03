@@ -1,7 +1,7 @@
 name: masamune_firebase_messaging
 description: >-
   Plugin to add Firebase Messaging to the Masamune framework.
-version: 0.5.0
+version: 0.5.0+1
 homepage: https://mathru.net
 repository: https://github.com/mathrunet/flutter_masamune_firebase_messaging
 

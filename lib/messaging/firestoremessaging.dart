@@ -31,12 +31,12 @@ class FirestoreMessaging extends TaskDocument<DataField>
           isTemporary: isTemporary,
           group: this.group,
           order: this.order) as T;
-  Firebase get _app {
-    if (this.__app == null) this.__app = Firebase(this.protocol);
+  FirebaseCore get _app {
+    if (this.__app == null) this.__app = FirebaseCore(this.protocol);
     return this.__app;
   }
 
-  Firebase __app;
+  FirebaseCore __app;
   FirebaseMessaging get _messaging {
     if (this.__messaging == null) this.__messaging = FirebaseMessaging();
     return this.__messaging;
@@ -132,7 +132,7 @@ class FirestoreMessaging extends TaskDocument<DataField>
     try {
       if (data == null) data = {};
       data["click_action"] = "FLUTTER_NOTIFICATION_CLICK";
-      final aa = await post(
+      await post(
         "https://fcm.googleapis.com/fcm/send",
         headers: <String, String>{
           "Content-Type": "application/json",
@@ -211,7 +211,7 @@ class FirestoreMessaging extends TaskDocument<DataField>
   static const String _systemPath = "system://firebasemessaging";
   void _initialize() async {
     try {
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (this._messaging == null) this.__messaging = FirebaseMessaging();
       this._messaging.configure(
           onMessage: this._done,
@@ -431,7 +431,8 @@ class FirestoreMessaging extends TaskDocument<DataField>
   ///
   /// Run if you have a remote or need to save data.
   @override
-  Future<T> save<T extends IDataDocument<IDataField>>() {
+  Future<T> save<T extends IDataDocument<IDataField>>(
+      {Map<String, dynamic> data, void builder(T document)}) {
     throw UnimplementedError();
   }
 

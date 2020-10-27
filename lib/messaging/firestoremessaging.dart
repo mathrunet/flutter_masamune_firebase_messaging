@@ -409,6 +409,18 @@ class FirestoreMessaging extends TaskDocument<DataField>
     return this.data[key].getString(defaultValue);
   }
 
+  /// Obtain location data.
+  ///
+  /// [key]: Key for retrieving data.
+  /// [defaultValue]: Initial value if there is no value.
+  T getGeo<T extends GeoData>(String key,
+      [GeoData defaultValue = const GeoData()]) {
+    if (isEmpty(key) || !this.data.containsKey(key)) return defaultValue;
+    DataField data = this.data[key];
+    if (data == null) return defaultValue;
+    return this.data[key].getGeo<T>(defaultValue);
+  }
+
   /// Get the UID of the document.
   ///
   /// If there is no value in the field, id will be output.

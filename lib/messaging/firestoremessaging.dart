@@ -10,6 +10,10 @@ class FirestoreMessaging extends TaskDocument<DataField>
     implements ITask, IDataDocument<DataField> {
   String _serverKey;
 
+  /// Navigator.
+  NavigatorState get navigator => this._navigator;
+  NavigatorState _navigator;
+
   /// Create a Completer that matches the class.
   ///
   /// Do not use from external class
@@ -71,18 +75,24 @@ class FirestoreMessaging extends TaskDocument<DataField>
   ///
   /// [subscribe]: Timeout time.
   /// [serverKey]: Cloud messaging server key. You need to set this to send.
+  /// [navigator]: Navigator to use
+  /// when performing screen transitions within a callback.
   static Future<FirestoreMessaging> listen(
-      {List<String> subscribe = const [], String serverKey}) {
+      {List<String> subscribe = const [],
+      String serverKey,
+      NavigatorState navigator}) {
     if (Config.isWeb) {
       Log.error("This platform is not supported.");
       return Future.delayed(Duration.zero);
     }
     FirestoreMessaging document = PathMap.get<FirestoreMessaging>(_systemPath);
     if (document != null) {
+      if (navigator != document.navigator) document._navigator = navigator;
       if (document._serverKey != serverKey) document._serverKey = serverKey;
       return document.future;
     }
-    document = FirestoreMessaging._(path: _systemPath, serverKey: serverKey);
+    document = FirestoreMessaging._(
+        path: _systemPath, serverKey: serverKey, navigator: navigator);
     document._initialize();
     subscribe?.forEach((topic) {
       document._subscribe(topic);
@@ -198,10 +208,12 @@ class FirestoreMessaging extends TaskDocument<DataField>
       {String path,
       Iterable<DataField> children,
       String serverKey,
+      NavigatorState navigator,
       bool isTemporary = false,
       int group = 0,
       int order = 10})
       : this._serverKey = serverKey,
+        this._navigator = navigator,
         super(
             path: path,
             children: children,

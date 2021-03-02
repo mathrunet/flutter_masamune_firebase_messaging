@@ -1,6 +1,10 @@
+## [0.8.0] - Update README (2021.03.01)
+
+* Support for Null Safety.
+
 ## [0.6.2] - Update README (2021.01.19)
 
-* Move core functionality to the masamune package
+* Move core functionality to the masamune package.
 
 ## [0.6.0] - Update README (2021.01.07)
 

@@ -1,28 +1,24 @@
 name: masamune_firebase_messaging
-description: >-
-  Plugin to add Firebase Messaging to the Masamune framework.
-version: 0.6.2+1
+description: Plugin to add Firebase Messaging to the Masamune framework.
+version: 0.8.0-nullsafety.2
 homepage: https://mathru.net
 repository: https://github.com/mathrunet/flutter_masamune_firebase_messaging
 
 environment:
-  sdk: ">=2.8.0 <3.0.0"
+  sdk: ">=2.12.0-0 <3.0.0"
+  flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  # http
-  http: ^0.12.2
-  # Firebase
-  firebase_core: ^0.5.0
-  firebase_messaging: ^7.0.3
-  # Masamune
-  masamune: ^0.6.0
-  masamune_core: ^0.6.0
-  masamune_mobile: ^0.6.0
-  masamune_localize: ^0.6.0
-  masamune_flutter: ^0.6.0
-  masamune_firebase: ^0.6.0
+
+  katana_firebase: ^0.8.0-nullsafety
+  masamune: ^0.8.0-nullsafety
+  masamune_mobile: ^0.8.0-nullsafety
+  masamune_firebase: ^0.8.0-nullsafety
+  firebase_model_notifier: ^0.8.0-nullsafety
+  firebase_messaging: ^9.0.0
+  http: ^0.13.0-nullsafety
 
 dev_dependencies:
   flutter_test:
@@ -30,18 +26,6 @@ dev_dependencies:
   # Masamune
   masamune_test: ^0.5.0
   
-# dependency_overrides:
-#   masamune_core:
-#     path: ../masamune_core/
-#   masamune_mobile:
-#     path: ../masamune_mobile/
-#   masamune_localize:
-#     path: ../masamune_localize/
-#   masamune_firebase:
-#     path: ../masamune_firebase/
-#   masamune_flutter:
-#     path: ../masamune_flutter/
-
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

@@ -1,34 +1,66 @@
 part of masamune.firebase.messaging;
 
-final firebaseMessagingProvider =
-    ModelProvider.family<FirebaseMessagingModel, String>(
-  (_, serverKey) => FirebaseMessagingModel(serverKey: serverKey),
+final firebaseMessagingProvider = ModelProvider(
+  (_) => FirebaseMessagingModel(),
 );
 
 class FirebaseMessagingModel extends MapModel<dynamic> {
-  FirebaseMessagingModel({required this.serverKey}) : super();
+  FirebaseMessagingModel() : super();
 
   @protected
   FirebaseMessaging get messaging {
     return FirebaseMessaging.instance;
   }
 
-  final String serverKey;
+  late final String serverKey;
+
+  final List<void Function(FirebaseMessagingModel messaging)> _callback = [];
 
   late final NavigatorState navigator;
   StreamSubscription<RemoteMessage>? _onMessageSubscription;
   StreamSubscription<RemoteMessage>? _onMessageOpenedAppSubscription;
 
-  Future<FirebaseMessagingModel> listen(BuildContext context,
-      {List<String> subscribe = const []}) async {
+  Future<FirebaseMessagingModel> initialize(BuildContext context,
+      {required String serverKey,
+      List<void Function(FirebaseMessagingModel messaging)> callback = const [],
+      List<String> subscribe = const []}) async {
     if (Config.isWeb) {
       throw Exception("This platform is not supported.");
     }
     navigator = Navigator.of(context);
+    serverKey = serverKey;
+    if (callback.isNotEmpty) {
+      _callback.addAll(callback);
+    }
     await _initialize();
     subscribe.forEach((topic) {
       _subscribe(topic);
     });
+    return this;
+  }
+
+  FirebaseMessagingModel listen(
+    List<void Function(FirebaseMessagingModel messaging)> callback,
+  ) {
+    if (Config.isWeb) {
+      throw Exception("This platform is not supported.");
+    }
+    for (final call in callback) {
+      if (_callback.contains(call)) {
+        continue;
+      }
+      _callback.add(call);
+    }
+    return this;
+  }
+
+  FirebaseMessagingModel unlisten(
+    List<void Function(FirebaseMessagingModel messaging)> callback,
+  ) {
+    if (Config.isWeb) {
+      throw Exception("This platform is not supported.");
+    }
+    callback.forEach((call) => _callback.remove(call));
     return this;
   }
 
@@ -95,6 +127,7 @@ class FirebaseMessagingModel extends MapModel<dynamic> {
   @override
   void dispose() {
     super.dispose();
+    _callback.clear();
     _onMessageSubscription?.cancel();
     _onMessageOpenedAppSubscription?.cancel();
     FirebaseMessaging.onBackgroundMessage((message) async {});
@@ -135,6 +168,7 @@ class FirebaseMessagingModel extends MapModel<dynamic> {
             .forEach((key, value) => this[key] = value);
       }
     }
+    _callback.forEach((element) => element.call(this));
     notifyListeners();
   }
 

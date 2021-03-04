@@ -20,12 +20,12 @@ class FirebaseMessagingCore {
       );
 
   static FirebaseMessagingModel listen(
-    List<void Function(FirebaseMessagingModel messaging)> callback,
+    void Function(FirebaseMessagingModel messaging) callback,
   ) =>
       _messaging.listen(callback);
 
   static FirebaseMessagingModel unlisten(
-    List<void Function(FirebaseMessagingModel messaging)> callback,
+    void Function(FirebaseMessagingModel messaging) callback,
   ) =>
       _messaging.unlisten(callback);
 

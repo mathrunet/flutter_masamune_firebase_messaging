@@ -40,27 +40,34 @@ class FirebaseMessagingModel extends MapModel<dynamic> {
   }
 
   FirebaseMessagingModel listen(
-    List<void Function(FirebaseMessagingModel messaging)> callback,
+    void Function(FirebaseMessagingModel messaging) callback,
   ) {
     if (Config.isWeb) {
       throw Exception("This platform is not supported.");
     }
-    for (final call in callback) {
-      if (_callback.contains(call)) {
-        continue;
-      }
-      _callback.add(call);
+    if (!isInitialized) {
+      debugPrint(
+          "It has not been initialized. Please initialize it by executing [initialize()].");
+      return this;
+    }
+    if (!_callback.contains(callback)) {
+      _callback.add(callback);
     }
     return this;
   }
 
   FirebaseMessagingModel unlisten(
-    List<void Function(FirebaseMessagingModel messaging)> callback,
+    void Function(FirebaseMessagingModel messaging) callback,
   ) {
     if (Config.isWeb) {
       throw Exception("This platform is not supported.");
     }
-    callback.forEach((call) => _callback.remove(call));
+    if (!isInitialized) {
+      debugPrint(
+          "It has not been initialized. Please initialize it by executing [initialize()].");
+      return this;
+    }
+    _callback.remove(callback);
     return this;
   }
 
@@ -78,6 +85,11 @@ class FirebaseMessagingModel extends MapModel<dynamic> {
   }) async {
     if (Config.isWeb) {
       throw Exception("This platform is not supported.");
+    }
+    if (!isInitialized) {
+      debugPrint(
+          "It has not been initialized. Please initialize it by executing [initialize()].");
+      return this;
     }
     assert(title.isNotEmpty && text.isNotEmpty,
         "There is no information in the message.");
@@ -110,6 +122,11 @@ class FirebaseMessagingModel extends MapModel<dynamic> {
   ///
   /// [topic]: The topic you want to subscribe to.
   FirebaseMessagingModel subscribe(String topic) {
+    if (!isInitialized) {
+      debugPrint(
+          "It has not been initialized. Please initialize it by executing [initialize()].");
+      return this;
+    }
     assert(topic.isNotEmpty, "You have not specified a topic.");
     _subscribe(topic);
     return this;
@@ -119,6 +136,11 @@ class FirebaseMessagingModel extends MapModel<dynamic> {
   ///
   /// [topic]: The topic you want to unsubscribe to.
   FirebaseMessagingModel unsubscribe(String topic) {
+    if (!isInitialized) {
+      debugPrint(
+          "It has not been initialized. Please initialize it by executing [initialize()].");
+      return this;
+    }
     assert(topic.isNotEmpty, "You have not specified a topic.");
     _unsubscribe(topic);
     return this;
@@ -141,6 +163,7 @@ class FirebaseMessagingModel extends MapModel<dynamic> {
     FirebaseMessaging.onBackgroundMessage(_onBackgroundMessageHandler);
     await messaging.setForegroundNotificationPresentationOptions(
         sound: true, badge: true, alert: true);
+    _isInitialized = true;
   }
 
   @override
@@ -189,4 +212,8 @@ class FirebaseMessagingModel extends MapModel<dynamic> {
     }
     messaging.unsubscribeFromTopic(topic);
   }
+
+  /// True if the billing system has been initialized.
+  bool get isInitialized => _isInitialized;
+  bool _isInitialized = false;
 }
